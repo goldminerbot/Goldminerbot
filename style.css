@@ -1,1 +1,55 @@
+body { margin: 0; font-family: Arial; background: linear-gradient(135deg, #6dd5fa, #ffffff); overflow-x: hidden; }
+
+.topbar { background: #d6b36a; padding: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+
+/* প্রোফাইল বক্স রেইনবো গ্লো */
+.profileBox { display: flex; gap: 8px; align-items: center; background: #f5e7c6; padding: 6px 10px; border-radius: 12px; border: 2px solid #8b6b2e; animation: rainbowGlow 3s linear infinite; }
+
+@keyframes rainbowGlow {
+  0% { box-shadow: 0 0 12px red; }
+  25% { box-shadow: 0 0 12px gold; }
+  50% { box-shadow: 0 0 12px lime; }
+  75% { box-shadow: 0 0 12px cyan; }
+  100% { box-shadow: 0 0 12px red; }
+}
+
+.container { padding: 15px; max-width: 500px; margin: auto; }
+
+/* ব্যালেন্স বক্স রেইনবো গ্লো */
+.stats { background: #f0ddb5; border: 4px solid #ffd700; border-radius: 15px; padding: 15px; text-align: center; margin-bottom: 15px; animation: rainbowGlow 3s linear infinite; }
+
+.big { font-size: 24px; font-weight: bold; transition: 0.3s; }
+
+/* রেইনবো টেক্সট অ্যানিমেশন যখন ১০০০ হবে */
+@keyframes rainbowText {
+  0% { color: red; }
+  20% { color: orange; }
+  40% { color: gold; }
+  60% { color: green; }
+  80% { color: blue; }
+  100% { color: violet; }
+}
+
+.small { font-size: 13px; }
+.grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+
+/* প্ল্যান বক্স রেইনবো গ্লো */
+.plan { background: #f5e7c6; border: 3px solid #b08a3e; border-radius: 14px; padding: 10px; text-align: center; animation: rainbowGlow 3s linear infinite; }
+
+button { background: #f4a43b; border: none; border-radius: 8px; padding: 8px; width: 100%; font-weight: bold; cursor: pointer; box-shadow: 0 3px 0 #c97c1f; }
+button:active { transform: translateY(2px); box-shadow: 0 1px 0 #c97c1f; }
+
+.btn-group { display: flex; gap: 10px; margin-top: 10px; }
+.collect-btn { background: #4CAF50; box-shadow: 0 3px 0 #2e7d32; }
+.cancel-btn { background: #4CAF50 !important; color: white; margin-top: 8px; box-shadow: 0 3px 0 #2e7d32 !important; }
+
+.modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.6); z-index: 999; }
+.modal .box { background: #fff; margin: 15% auto; padding: 15px; border-radius: 12px; max-width: 320px; }
+
+input, select { width: 100%; padding: 8px; margin-bottom: 8px; box-sizing: border-box; }
+.copy-box { cursor: pointer; background: #eee; padding: 10px; border-radius: 5px; border: 1px dashed #666; text-align: center; }
+.list { max-height: 120px; overflow: auto; border: 1px solid #ddd; padding: 6px; font-size: 12px; }
+
+#toast { visibility: hidden; min-width: 200px; background-color: #333; color: #fff; text-align: center; border-radius: 5px; padding: 10px; position: fixed; z-index: 1000; left: 50%; top: 20px; transform: translateX(-50%); }
+#toast.show { visibility: visible; animation: fadein 0.5s; }
 @keyframes fadein { from { top: 0; opacity: 0; } to { top: 20px; opacity: 1; } }
