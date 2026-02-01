@@ -16,10 +16,11 @@ const user = tg.initDataUnsafe.user || { id: "Demo_User", first_name: "Player" }
 const userId = user.id;
 document.getElementById('tgName').innerText = user.first_name;
 
+// ১. রেফারেল আইডি ধরার সঠিক নিয়ম (URL এবং Telegram Param দুইটাই চেক করবে)
 const urlParams = new URLSearchParams(window.location.search);
-const invitedBy = urlParams.get('start');
+let invitedBy = urlParams.get('start') || tg.initDataUnsafe.start_param;
 
-let userData = { gold: 0, balance: 0, totalPerDay: 0, referredBy: null, lastSyncTime: Date.now() };
+let userData = { gold: 0, balance: 0, totalPerDay: 0, referCount: 0, referredBy: null, lastSyncTime: Date.now() };
 
 const planes = [
     {cost:10, perDay:5},{cost:20, perDay:10},{cost:30, perDay:15},{cost:40, perDay:20},
@@ -35,10 +36,12 @@ function showToast(m) {
 
 const userRef = db.ref('users/' + userId);
 
-// ১. ডাটাবেস লিসেনার এবং অফলাইন ইনকাম
+// ২. মেইন ডাটা হ্যান্ডলার
 userRef.on('value', (s) => {
     if (s.exists()) {
         userData = s.val();
+        
+        // অফলাইন ইনকাম ক্যালকুলেশন
         if (!window.initialSync) {
             let now = Date.now();
             let last = userData.lastSyncTime || now;
@@ -52,26 +55,30 @@ userRef.on('value', (s) => {
         }
         updateUI();
     } else {
-        // নতুন ইউজার ডাটা এবং ২৫০ গোল্ড রেফারেল বোনাস লজিক
-        userRef.set({
-            name: user.first_name, 
-            gold: 500, 
-            balance: 0, 
+        // নতুন ইউজার তৈরি এবং অটো রেফার বোনাস
+        let newData = {
+            name: user.first_name,
+            gold: 500,
+            balance: 0,
             totalPerDay: 0,
+            referCount: 0, // নতুন ইউজারের রেফার সংখ্যা ০
             referredBy: (invitedBy && invitedBy != userId) ? invitedBy : null,
             lastSyncTime: Date.now()
-        });
+        };
         
-        // রফিক বা রেফারার ২৫০ গোল্ড বোনাস পাবে
-        if (invitedBy && invitedBy != userId) {
-            const refUserRef = db.ref('users/' + invitedBy);
-            refUserRef.get().then((snap) => {
-                if (snap.exists()) {
-                    let oldGold = snap.val().gold || 0;
-                    refUserRef.update({ gold: oldGold + 250 });
-                }
-            });
-        }
+        userRef.set(newData).then(() => {
+            // যদি কেউ রেফার করে থাকে, তাকে ২৫০ গোল্ড দেওয়া
+            if (invitedBy && invitedBy != userId) {
+                const refUserRef = db.ref('users/' + invitedBy);
+                refUserRef.transaction((currentData) => {
+                    if (currentData) {
+                        currentData.gold = (currentData.gold || 0) + 250;
+                        currentData.referCount = (currentData.referCount || 0) + 1; // ডাটাবেসে রেফার সংখ্যা বাড়বে
+                    }
+                    return currentData;
+                });
+            }
+        });
     }
 });
 
@@ -82,7 +89,7 @@ function updateUI() {
     document.getElementById('perMonth').innerText = (userData.totalPerDay*30).toFixed(2);
 }
 
-// ২. গোল্ড কালেক্ট এবং লিমিট চেক
+// ৩. গোল্ড কালেকশন
 function collectGold() {
     if (userData.balance < 1) return showToast("কমপক্ষে ১ গোল্ড লাগবে! ❌");
     let amt = Math.floor(userData.balance);
@@ -94,7 +101,7 @@ function collectGold() {
     showToast(amt + " গোল্ড কালেক্ট হয়েছে! ✅");
 }
 
-// ৩. স্মুথ মাইনিং এবং ১০০০ গোল্ড রেইনবো এনিমেশন
+// ৪. মাইনিং এনিমেশন এবং ১০০০ লিমিট
 let lastTime = Date.now();
 function smoothMining() {
     let now = Date.now();
@@ -103,7 +110,6 @@ function smoothMining() {
 
     if (userData.totalPerDay > 0) {
         let display = document.getElementById('balanceDisplay');
-        
         if (userData.balance < 1000) {
             userData.balance += (userData.totalPerDay / 86400) * dt;
             if (userData.balance > 1000) userData.balance = 1000;
@@ -113,7 +119,6 @@ function smoothMining() {
             display.style.animation = "rainbowText 1s linear infinite";
             display.style.fontWeight = "bold";
         }
-        
         display.innerText = userData.balance.toFixed(5);
         if (Math.random() < 0.01) userRef.update({ balance: userData.balance, lastSyncTime: Date.now() });
     }
@@ -121,36 +126,39 @@ function smoothMining() {
 }
 smoothMining();
 
-// ৪. প্ল্যান কেনা এবং ২০% আজীবন কমিশন লজিক
+// ৫. প্ল্যান কেনা এবং আজীবন ২০% কমিশন
 function buy(i) {
     const p = planes[i];
     if (userData.gold < p.cost) return showToast("গোল্ড নেই! ❌");
     
-    // নিজের ডাটা আপডেট
     userRef.update({ 
         gold: userData.gold - p.cost, 
         totalPerDay: userData.totalPerDay + p.perDay, 
         lastSyncTime: Date.now() 
     });
 
-    // রেফারারকে ২০% আজীবন কমিশন দেওয়া
     if (userData.referredBy) {
-        const refUserPath = db.ref('users/' + userData.referredBy);
-        refUserPath.get().then((snap) => {
-            if (snap.exists()) {
-                let currentGold = snap.val().gold || 0;
-                let commission = p.cost * 0.20; 
-                refUserPath.update({ gold: currentGold + commission });
+        const refUserRef = db.ref('users/' + userData.referredBy);
+        refUserRef.transaction((currentData) => {
+            if (currentData) {
+                let commission = p.cost * 0.20;
+                currentData.gold = (currentData.gold || 0) + commission;
             }
+            return currentData;
         });
     }
     showToast("প্ল্যান সফল! ✅");
 }
 
-// ৫. রেফারেল লিঙ্ক এবং উইথড্র সিস্টেম
+// ৬. রেফারেল এবং অন্যান্য
 function openRefer() {
     let botUsername = "goldminerzonebot"; 
     document.getElementById('referLink').innerText = "https://t.me/" + botUsername + "?start=" + userId;
+    
+    // ইউজারের নিজের রেফার কাউন্ট দেখাবে
+    let count = userData.referCount || 0;
+    document.getElementById('referList').innerHTML = "Total Referrals: " + count;
+    
     document.getElementById('referBox').style.display = "block";
 }
 
@@ -165,9 +173,7 @@ function submitWithdraw() {
     if(amt < 2000) return showToast("কমপক্ষে ২০০০ লাগবে! ❌");
     if(userData.gold < amt) return showToast("ব্যালেন্স নেই! ❌");
     db.ref('withdrawRequests').push({ 
-        uid: userId, 
-        name: user.first_name, 
-        amt, 
+        uid: userId, name: user.first_name, amt, 
         num: document.getElementById('payNumber').value, 
         method: document.getElementById('payMethod').value, 
         time: new Date().toLocaleString() 
