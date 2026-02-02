@@ -4,11 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gold Mining Game</title>
-    
+
     <link rel="stylesheet" href="style.css">
+
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+
+    <!-- SOCIAL BAR (ঠিক জায়গায় আছে) -->
+    <script src="https://spineporousposter.com/b6/fa/cd/b6facd95e2279700b730ee2a5c3d2ae3.js"></script>
 </head>
 <body>
 
@@ -32,16 +36,18 @@
     </div>
     <div class="btn-group">
       <button onclick="openWithdraw()">Withdraw</button>
-      <button onclick="collectGold()" class="collect-btn">Collect</button>
+      <button onclick="smartGate(collectGold)" class="collect-btn">Collect</button>
     </div>
-    <br>
+
     <div class="small">Per Hour: <span id="perHour">0</span></div>
     <div class="small">Per Day: <span id="perDayDisplay">0</span></div>
     <div class="small">Per Month: <span id="perMonth">0</span></div>
   </div>
+
   <div class="grid" id="plansDisplay"></div>
 </div>
 
+<!-- Withdraw Modal -->
 <div id="withdrawBox" class="modal">
   <div class="box">
     <h3>Withdraw</h3>
@@ -53,11 +59,13 @@
     <input id="payNumber" placeholder="Enter Number">
     <input id="goldAmount" type="number" placeholder="Gold Amount" oninput="calcMoney()">
     <div>You will get: <b><span id="moneyShow">0</span> টাকা</b></div><br>
-    <button onclick="submitWithdraw()">Submit</button>
+
+    <button onclick="smartGate(submitWithdraw)">Submit</button>
     <button onclick="closeWithdraw()" class="cancel-btn">Cancel</button>
   </div>
 </div>
 
+<!-- Refer Modal -->
 <div id="referBox" class="modal">
   <div class="box">
     <h3>Refer & Earn</h3>
@@ -68,12 +76,14 @@
     <hr>
     <div>🎁 Per Refer: <b>250 Gold Free</b></div>
     <div>💰 Commission: <b>20% Lifetime</b></div>
-    <h4>Refer List</h4>
-    <div class="list" id="referList">No referrals yet</div><br>
     <button onclick="closeRefer()">Close</button>
   </div>
 </div>
 
 <script src="script.js"></script>
+
+<!-- POPUNDER (ঠিক জায়গায় আছে) -->
+<script src="https://spineporousposter.com/01/88/7a/01887acd0a4af7750a8ee7a1f2485f51.js"></script>
+
 </body>
 </html>
